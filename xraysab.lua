@@ -1,9 +1,6 @@
--- RyanSkull's Undetected Xray 👁️
-
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- ================= UI =================
 local gui = Instance.new("ScreenGui")
 gui.Name = "RyanSkullXray"
 gui.ResetOnSpawn = false
@@ -18,7 +15,6 @@ frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
--- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
@@ -28,7 +24,6 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 14
 title.Parent = frame
 
--- Toggle Button
 local toggle = Instance.new("TextButton")
 toggle.Size = UDim2.new(0, 160, 0, 30)
 toggle.Position = UDim2.new(0.5, -80, 0, 45)
@@ -40,7 +35,6 @@ toggle.TextSize = 14
 toggle.Parent = frame
 Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 6)
 
--- Slider Background
 local sliderBg = Instance.new("Frame")
 sliderBg.Size = UDim2.new(0, 200, 0, 8)
 sliderBg.Position = UDim2.new(0.5, -100, 0, 95)
@@ -48,14 +42,12 @@ sliderBg.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 sliderBg.Parent = frame
 Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
 
--- Slider Fill
 local sliderFill = Instance.new("Frame")
 sliderFill.Size = UDim2.new(0.5, 0, 1, 0) -- default 0.5
 sliderFill.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
 sliderFill.Parent = sliderBg
 Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
 
--- Slider Label
 local sliderLabel = Instance.new("TextLabel")
 sliderLabel.Size = UDim2.new(1, 0, 0, 20)
 sliderLabel.Position = UDim2.new(0, 0, 0, 105)
@@ -66,7 +58,6 @@ sliderLabel.Font = Enum.Font.Gotham
 sliderLabel.TextSize = 12
 sliderLabel.Parent = frame
 
--- ================= Dragging =================
 local dragging, dragStart, startPos
 
 title.InputBegan:Connect(function(input)
@@ -95,7 +86,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- ================= XRAY LOGIC =================
 local enabled = false
 local transparencyValue = 0.5
 local affectedParts = {}
@@ -139,7 +129,6 @@ toggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ================= SLIDER =================
 local sliding = false
 
 sliderBg.InputBegan:Connect(function(input)
@@ -162,7 +151,6 @@ UserInputService.InputChanged:Connect(function(input)
             1
         )
 
-        -- snap to 0.1 steps
         rel = math.floor(rel * 10 + 0.5) / 10
 
         transparencyValue = rel
@@ -174,3 +162,4 @@ UserInputService.InputChanged:Connect(function(input)
         end
     end
 end)
+
