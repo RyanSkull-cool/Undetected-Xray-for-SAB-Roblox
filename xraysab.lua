@@ -1,5 +1,4 @@
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
 local gui = Instance.new("ScreenGui")
@@ -58,9 +57,7 @@ sliderLabel.Font = Enum.Font.Gotham
 sliderLabel.TextSize = 12
 sliderLabel.Parent = frame
 
--- ================= Dragging =================
 local dragging, dragStart, startPos
-
 title.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
@@ -68,13 +65,11 @@ title.InputBegan:Connect(function(input)
         startPos = frame.Position
     end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
@@ -96,6 +91,12 @@ local function processPart(part)
     end
 end
 
+local function applyXrayOnce()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        processPart(obj)
+    end
+end
+
 local function disableXray()
     for part, original in pairs(affectedParts) do
         if part and part.Parent then
@@ -110,6 +111,7 @@ toggle.MouseButton1Click:Connect(function()
     if enabled then
         toggle.Text = "XRAY: ON"
         toggle.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+        applyXrayOnce()
     else
         toggle.Text = "XRAY: OFF"
         toggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
@@ -117,41 +119,30 @@ toggle.MouseButton1Click:Connect(function()
     end
 end)
 
-RunService.Heartbeat:Connect(function()
-    if not enabled then return end
-
-    for _, obj in ipairs(workspace:GetDescendants()) do
+workspace.DescendantAdded:Connect(function(obj)
+    if enabled then
         processPart(obj)
     end
 end)
 
 local sliding = false
-
 sliderBg.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = true
-    end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then sliding = true end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        sliding = false
-    end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then sliding = false end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
         local rel = math.clamp(
             (input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X,
             0, 1
         )
-
         rel = math.floor(rel * 10 + 0.5) / 10
         transparencyValue = rel
-
         sliderFill.Size = UDim2.new(rel, 0, 1, 0)
         sliderLabel.Text = "Transparency: " .. rel
-
+        -- live update affected parts
         if enabled then
             for part in pairs(affectedParts) do
                 if part and part.Parent then
