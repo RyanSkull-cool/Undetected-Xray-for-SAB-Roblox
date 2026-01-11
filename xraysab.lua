@@ -1,4 +1,5 @@
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
 local gui = Instance.new("ScreenGui")
@@ -12,7 +13,6 @@ frame.Position = UDim2.new(0.5, -130, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 frame.BorderSizePixel = 0
 frame.Parent = gui
-
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
 local title = Instance.new("TextLabel")
@@ -43,7 +43,7 @@ sliderBg.Parent = frame
 Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
 
 local sliderFill = Instance.new("Frame")
-sliderFill.Size = UDim2.new(0.5, 0, 1, 0) -- default 0.5
+sliderFill.Size = UDim2.new(0.5, 0, 1, 0)
 sliderFill.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
 sliderFill.Parent = sliderBg
 Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
@@ -58,6 +58,7 @@ sliderLabel.Font = Enum.Font.Gotham
 sliderLabel.TextSize = 12
 sliderLabel.Parent = frame
 
+-- ================= Dragging =================
 local dragging, dragStart, startPos
 
 title.InputBegan:Connect(function(input)
@@ -78,10 +79,8 @@ UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
     end
 end)
@@ -90,20 +89,10 @@ local enabled = false
 local transparencyValue = 0.5
 local affectedParts = {}
 
-local function applyXray()
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Transparency == 0 then
-            affectedParts[obj] = 0
-            obj.Transparency = transparencyValue
-        end
-    end
-end
-
-local function updateXray()
-    for part in pairs(affectedParts) do
-        if part and part.Parent then
-            part.Transparency = transparencyValue
-        end
+local function processPart(part)
+    if part:IsA("BasePart") and part.Transparency == 0 and not affectedParts[part] then
+        affectedParts[part] = 0
+        part.Transparency = transparencyValue
     end
 end
 
@@ -121,11 +110,18 @@ toggle.MouseButton1Click:Connect(function()
     if enabled then
         toggle.Text = "XRAY: ON"
         toggle.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-        applyXray()
     else
         toggle.Text = "XRAY: OFF"
         toggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
         disableXray()
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if not enabled then return end
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        processPart(obj)
     end
 end)
 
@@ -147,19 +143,21 @@ UserInputService.InputChanged:Connect(function(input)
     if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
         local rel = math.clamp(
             (input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X,
-            0,
-            1
+            0, 1
         )
 
         rel = math.floor(rel * 10 + 0.5) / 10
-
         transparencyValue = rel
+
         sliderFill.Size = UDim2.new(rel, 0, 1, 0)
         sliderLabel.Text = "Transparency: " .. rel
 
         if enabled then
-            updateXray()
+            for part in pairs(affectedParts) do
+                if part and part.Parent then
+                    part.Transparency = transparencyValue
+                end
+            end
         end
     end
 end)
-
